@@ -18,17 +18,16 @@ public class Main {
     static final String TEMP_PATH = "C:\\weibo_temp\\";
 
     //pic_ids pic_infos bmiddle url
-    static long WaitTime = 10000;
+    static final long WaitTime = 5000;
 
     static final String x_xsrf_token = "NmHZBcNKvDAqc9wQ5UzXVLts";
     static final String cookie = "PC_TOKEN=2ed96e54a1; SUB=_2AkMVhxWbf8NxqwJRmfsQy2nlao5zyQHEieKj2-RAJRMxHRl-yT9jqkNatRB6Pgc7dASpZQCTumL0RPTq_h1fDg1ggv8z; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9WWOe5WOd6biMhsCKGGkun8I; XSRF-TOKEN=NmHZBcNKvDAqc9wQ5UzXVLts; WBPSESS=mm07v0uQ8nV44TNSi6a9LQYvQnUzySLJhc3SLeYGHOmt4eqSj_Txsi-5LERlCcwtjyvouSWA2UOfDz9h36nl5927B5LB8BsIy5p5NBv77z8iodciks3JRgFv0hzw9C4f1_7RU7Vh-7-M-GWvORRTz6Ntp9Df44FeRTdk4q8XMTg=";
     static List<String> weiboUidList = new ArrayList<>();
     static List<String> savePicList = new ArrayList<>();
-    static boolean isDebug = false;
+    static boolean isDebug = true;
 
     public static void main(String[] args) {
         if (isDebug) {
-            WaitTime = 10000;
             weiboUidList.add("2198436847");
             weiboUidList.add("6225121051");
             weiboUidList.add("1987241375");
@@ -138,9 +137,7 @@ public class Main {
             int newPublishIndex = getNewPublicTimeIndex (jsonArray);
 
             text = jsonArray.getJSONObject(newPublishIndex).getString("text_raw");
-            if (text.length() > 3) {
-                text = text.substring(0, text.length()-3);
-            }
+            text = text.replace ('\u200B', ' ');
 
             id = jsonArray.getJSONObject(newPublishIndex).getLong("id");
 

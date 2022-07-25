@@ -24,7 +24,7 @@ public class Main {
     static final String cookie = "PC_TOKEN=2ed96e54a1; SUB=_2AkMVhxWbf8NxqwJRmfsQy2nlao5zyQHEieKj2-RAJRMxHRl-yT9jqkNatRB6Pgc7dASpZQCTumL0RPTq_h1fDg1ggv8z; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9WWOe5WOd6biMhsCKGGkun8I; XSRF-TOKEN=NmHZBcNKvDAqc9wQ5UzXVLts; WBPSESS=mm07v0uQ8nV44TNSi6a9LQYvQnUzySLJhc3SLeYGHOmt4eqSj_Txsi-5LERlCcwtjyvouSWA2UOfDz9h36nl5927B5LB8BsIy5p5NBv77z8iodciks3JRgFv0hzw9C4f1_7RU7Vh-7-M-GWvORRTz6Ntp9Df44FeRTdk4q8XMTg=";
     static List<String> weiboUidList = new ArrayList<>();
     static List<String> savePicList = new ArrayList<>();
-    static boolean isDebug = true;
+    static boolean isDebug = false;
 
     public static void main(String[] args) {
         if (isDebug) {
@@ -153,15 +153,15 @@ public class Main {
                 String pic_path = TEMP_PATH + "pic\\" + pic_filename;
 
                 //把后缀都改成 jpg
-                String last = pic_path.substring (pic_path.lastIndexOf (".") + 1);
-                if (!last.equals ("jpg")) {
-                    System.out.println ("变更名字前 " + pic_path);
-
-                    String qian = pic_path.substring (0, pic_path.lastIndexOf ("."));
-                    pic_path = qian + "jpg";
-
-                    System.out.println ("变更名字后 " + pic_path);
-                }
+//                String last = pic_path.substring (pic_path.lastIndexOf (".") + 1);
+//                if (!last.equals ("jpg")) {
+//                    System.out.println ("变更名字前 " + pic_path);
+//
+//                    String qian = pic_path.substring (0, pic_path.lastIndexOf ("."));
+//                    pic_path = qian + ".jpg";
+//
+//                    System.out.println ("变更名字后 " + pic_path);
+//                }
 
                 File pic_file = new File (pic_path);
                 File pic_fileTemp = new File (pic_path+"_temp");

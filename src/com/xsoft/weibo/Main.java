@@ -6,11 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.CharsetEncoder;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Main {
     static final String WeiBo_URL = "https://weibo.com/ajax/statuses/mymblog?uid=";
@@ -20,15 +18,31 @@ public class Main {
     static final String TEMP_PATH = "C:\\weibo_temp\\";
 
     //pic_ids pic_infos bmiddle url
-    static final long WaitTime = 1*60000;
+    static long WaitTime = 30000;
 
     static final String x_xsrf_token = "NmHZBcNKvDAqc9wQ5UzXVLts";
     static final String cookie = "PC_TOKEN=2ed96e54a1; SUB=_2AkMVhxWbf8NxqwJRmfsQy2nlao5zyQHEieKj2-RAJRMxHRl-yT9jqkNatRB6Pgc7dASpZQCTumL0RPTq_h1fDg1ggv8z; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9WWOe5WOd6biMhsCKGGkun8I; XSRF-TOKEN=NmHZBcNKvDAqc9wQ5UzXVLts; WBPSESS=mm07v0uQ8nV44TNSi6a9LQYvQnUzySLJhc3SLeYGHOmt4eqSj_Txsi-5LERlCcwtjyvouSWA2UOfDz9h36nl5927B5LB8BsIy5p5NBv77z8iodciks3JRgFv0hzw9C4f1_7RU7Vh-7-M-GWvORRTz6Ntp9Df44FeRTdk4q8XMTg=";
     static List<String> weiboUidList = new ArrayList<>();
     static List<String> savePicList = new ArrayList<>();
+    static boolean isDebug = true;
 
     public static void main(String[] args) {
-        parseWeiboUID();
+        if (isDebug) {
+            WaitTime = 10000;
+            weiboUidList.add("2198436847");
+            weiboUidList.add("6225121051");
+            weiboUidList.add("1987241375");
+            weiboUidList.add("1917872472");
+            weiboUidList.add("5748988380");
+            weiboUidList.add("3194506490");
+            weiboUidList.add("5756956812");
+            weiboUidList.add("6744915183");
+            weiboUidList.add("5120842149");
+            weiboUidList.add("5675300697");
+            weiboUidList.add("5958505676");
+        } else {
+            parseWeiboUID();
+        }
 
         while (true) {
             for (String uid : weiboUidList) {
@@ -61,6 +75,7 @@ public class Main {
     }
 
     private static boolean writeData(String str, String uid) {
+        if (isDebug) return false;
         String fileName = TEMP_PATH + uid + ".txt";
         File file = new File(fileName);
         boolean isOK = false;
@@ -84,44 +99,89 @@ public class Main {
         return isOK;
     }
 
+    private static int getNewPublicTimeIndex(JSONArray jsonArray) {
+        int maxIndex = 0;
+        long maxTime = 0;
+
+        int size = jsonArray.size ();
+        for(int i=0; i<size; i++) {
+            String timeStr = jsonArray.getJSONObject(i).getString ("created_at");
+            long time = getTime (timeStr);
+            if (time > maxTime) {
+                maxTime = time;
+                maxIndex = i;
+            }
+        }
+
+        return maxIndex;
+    }
+
+    private static long getTime(String timeStr) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd hh:mm:ss z yyyy", Locale.ENGLISH);
+        try {
+            Date date = simpleDateFormat.parse(timeStr);
+            long ts = date.getTime();
+            return ts;
+        } catch (Exception e) {
+            e.printStackTrace ();
+        }
+        return 0;
+    }
+
     private static String getWeiboData(String json) {
         JSONObject jsonObject = JSON.parseObject(json);
         String text = "";
         long id = 0;
         String textAndOrgURL = "";
         try {
-            text = jsonObject.getJSONObject("data").getJSONArray("list").getJSONObject(0).getString("text_raw");
+            JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("list");
+            int newPublishIndex = getNewPublicTimeIndex (jsonArray);
+
+            text = jsonArray.getJSONObject(newPublishIndex).getString("text_raw");
             if (text.length() > 3) {
                 text = text.substring(0, text.length()-3);
             }
 
-            id = jsonObject.getJSONObject("data").getJSONArray("list").getJSONObject(0).getLong("id");
+            id = jsonArray.getJSONObject(newPublishIndex).getLong("id");
 
-            JSONArray pic_idsArray = jsonObject.getJSONObject("data").getJSONArray("list").getJSONObject(0).getJSONArray("pic_ids");
+            JSONArray pic_idsArray = jsonArray.getJSONObject(newPublishIndex).getJSONArray("pic_ids");
             int size = pic_idsArray.size();
             for(int i=0; i<size; i++) {
                 String pic_id = pic_idsArray.getString(i);
-                String pic_url = jsonObject.getJSONObject("data").getJSONArray("list")
-                        .getJSONObject(0).getJSONObject("pic_infos")
+                String pic_url = jsonArray.getJSONObject(newPublishIndex).getJSONObject("pic_infos")
                         .getJSONObject(pic_id).getJSONObject("bmiddle").getString("url");
 
                 //保存图片
-                String pic_filename = pic_url.substring(pic_url.lastIndexOf("/")+1);
+                String pic_filename = pic_url.substring (pic_url.lastIndexOf ("/") + 1);
                 String pic_path = TEMP_PATH + "pic\\" + pic_filename;
-                File pic_file = new File(pic_path);
-                if(!savePicList.contains(pic_path)) {
-                    if (!pic_file.exists()) {
-                        HttpURLConnectionUtil.downloadFile(pic_url, pic_path);
-                        savePicList.add(pic_path);
+
+                //把后缀都改成 jpg
+                String last = pic_path.substring (pic_path.lastIndexOf (".") + 1);
+                if (!last.equals ("jpg")) {
+                    System.out.println ("变更名字前 " + pic_path);
+
+                    String qian = pic_path.substring (0, pic_path.lastIndexOf ("."));
+                    pic_path = qian + "jpg";
+
+                    System.out.println ("变更名字后 " + pic_path);
+                }
+
+                File pic_file = new File (pic_path);
+                File pic_fileTemp = new File (pic_path+"_temp");
+                if (!isDebug) {
+                    if (!savePicList.contains (pic_path)) {
+                        if (!pic_file.exists ()) {
+                            HttpURLConnectionUtil.downloadFile (pic_url, pic_path+"_temp");
+                            pic_fileTemp.renameTo (pic_file);
+                            savePicList.add (pic_path);
+                        }
                     }
                 }
 
-                String width = jsonObject.getJSONObject("data").getJSONArray("list")
-                        .getJSONObject(0).getJSONObject("pic_infos")
+                String width = jsonArray.getJSONObject(newPublishIndex).getJSONObject("pic_infos")
                         .getJSONObject(pic_id).getJSONObject("bmiddle").getString("width");
 
-                String height = jsonObject.getJSONObject("data").getJSONArray("list")
-                        .getJSONObject(0).getJSONObject("pic_infos")
+                String height = jsonArray.getJSONObject(newPublishIndex).getJSONObject("pic_infos")
                         .getJSONObject(pic_id).getJSONObject("bmiddle").getString("height");
 
                 String md5 = getMD5Checksum(pic_url);

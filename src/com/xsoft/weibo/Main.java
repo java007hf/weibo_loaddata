@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+
 public class Main {
     static final String WeiBo_URL = "https://weibo.com/ajax/statuses/mymblog?uid=";
     static final String ORG_Weibo_URL = "https://m.weibo.cn/status/";

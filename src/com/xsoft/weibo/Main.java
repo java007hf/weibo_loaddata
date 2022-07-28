@@ -117,7 +117,7 @@ public class Main {
     }
 
     private static long getTime(String timeStr) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd hh:mm:ss z yyyy", Locale.ENGLISH);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
         try {
             Date date = simpleDateFormat.parse(timeStr);
             long ts = date.getTime();

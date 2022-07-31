@@ -140,8 +140,13 @@ public class Main {
             text = jsonArray.getJSONObject(newPublishIndex).getString("text_raw");
             text = text.replace ('\u200B', ' ');
 
+            //替换其中的 t.cn断链
+            text = replaceShortUrl(text, jsonArray.getJSONObject(newPublishIndex));
+
+            //获取微博 id
             id = jsonArray.getJSONObject(newPublishIndex).getLong("id");
 
+            //添加图片
             JSONArray pic_idsArray = jsonArray.getJSONObject(newPublishIndex).getJSONArray("pic_ids");
             int size = pic_idsArray.size();
             for(int i=0; i<size; i++) {
@@ -194,6 +199,22 @@ public class Main {
         }
 
         return textAndOrgURL;
+    }
+
+    private static String replaceShortUrl(String text, JSONObject jsonObject) {
+        JSONArray urlJSONArray = jsonObject.getJSONArray("url_struct");
+        if (urlJSONArray == null) return text;
+
+        int size = urlJSONArray.size();
+
+        for (int i=0;i<size;i++) {
+            String shortStr = urlJSONArray.getJSONObject(i).getString("short_url");
+            String longStr = urlJSONArray.getJSONObject(i).getString("long_url");
+
+            text = text.replaceAll(shortStr, longStr);
+        }
+
+        return text;
     }
 
     private static String getWeiboMsgByUID(String uid) {

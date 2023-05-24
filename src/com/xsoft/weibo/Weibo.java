@@ -218,7 +218,7 @@ public class Weibo {
         tmap.put("x-requested-with", "XMLHttpRequest");
         tmap.put("x-xsrf-token", x_xsrf_token);
 
-        String vmsg= HttpURLConnectionUtil.httpGet(requestURL,tmap);//获取请求的返回结果
+        String vmsg= HttpURLConnectionUtil.httpGet(requestURL,tmap, null);//获取请求的返回结果
 
         return vmsg;
     }

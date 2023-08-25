@@ -6,23 +6,47 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 /**
  * @author riemann
  * @date 2019/05/24 23:42
  */
 public class HttpURLConnectionUtil {
-    public static String httpGet(String vurl, HashMap<String, Object> map) {
+    public static String httpGet(String vurl, HashMap<String, Object> map, String body, String setRequestMethod) {
         try {
             URL url = new URL(vurl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(setRequestMethod);
+
+            connection.setDoInput(true);// 设置是否从HttpURLConnection输入，默认值为 true
+            connection.setDoOutput(true);// 设置是否使用HttpURLConnection进行输出，默认值为 false
+
             for (Map.Entry item : map.entrySet()) {
                 connection.setRequestProperty(item.getKey().toString(),item.getValue().toString());//设置header
             }
+
+            connection.connect();
+
+            if (body != null) {
+                OutputStreamWriter writer = new OutputStreamWriter (connection.getOutputStream(), "UTF-8");
+                writer.write (body);
+                writer.close();
+            }
+
             InputStream in = connection.getInputStream();
+
+            String contentEncoding = connection.getContentEncoding();
+//            System.out.println ("contentEncoding = " + contentEncoding);
+
+            if (contentEncoding!=null) {
+                if (contentEncoding.equalsIgnoreCase ("gzip")) {
+                    in = new GZIPInputStream (in); //解决gzip乱码问题，weibo不需要
+                }
+            }
+
             InputStreamReader isr = new InputStreamReader(in, "utf-8");
             BufferedReader br = new BufferedReader(isr);
             String line;
@@ -33,6 +57,7 @@ public class HttpURLConnectionUtil {
             br.close();
             isr.close();
             in.close();
+            connection.disconnect ();
             return sb.toString();
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,7 +71,7 @@ public class HttpURLConnectionUtil {
      * @param httpUrl 连接
      * @return 响应数据
      */
-    public static String doGet(String httpUrl) {
+    public static String doGet(String httpUrl, HashMap<String, Object> map) {
         //链接
         HttpURLConnection connection = null;
         InputStream is = null;
@@ -56,6 +81,11 @@ public class HttpURLConnectionUtil {
             //创建连接
             URL url = new URL(httpUrl);
             connection = (HttpURLConnection) url.openConnection();
+
+            for (Map.Entry item : map.entrySet()) {
+                connection.setRequestProperty(item.getKey().toString(),item.getValue().toString());//设置header
+            }
+
             //设置请求方式
             connection.setRequestMethod("GET");
             //设置连接超时时间

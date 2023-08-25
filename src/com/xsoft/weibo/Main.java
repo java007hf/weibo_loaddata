@@ -157,6 +157,7 @@ public class Main {
                 //保存图片
                 String pic_filename = pic_url.substring (pic_url.lastIndexOf ("/") + 1);
                 String pic_path = TEMP_PATH + "pic\\" + pic_filename;
+                String pic_tmp_path = TEMP_PATH + "pic_tmp\\" + pic_filename;
 
                 //把后缀都改成 jpg
 //                String last = pic_path.substring (pic_path.lastIndexOf (".") + 1);
@@ -170,11 +171,11 @@ public class Main {
 //                }
 
                 File pic_file = new File (pic_path);
-                File pic_fileTemp = new File (pic_path+"_temp");
+                File pic_fileTemp = new File (pic_tmp_path);
                 if (!isDebug) {
                     if (!savePicList.contains (pic_path)) {
                         if (!pic_file.exists ()) {
-                            HttpURLConnectionUtil.downloadFile (pic_url, pic_path+"_temp");
+                            HttpURLConnectionUtil.downloadFile (pic_url, pic_tmp_path);
                             pic_fileTemp.renameTo (pic_file);
                             savePicList.add (pic_path);
                         }

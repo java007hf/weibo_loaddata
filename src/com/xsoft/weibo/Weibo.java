@@ -177,8 +177,19 @@ public class Weibo {
                 String pic_url = jsonArray.getJSONObject(newPublishIndex).getJSONObject("pic_infos")
                         .getJSONObject(pic_id).getJSONObject("bmiddle").getString("url");
 
+//                pic_url="http://wx1.sinaimg.cn/wap360/7672e59fly1hhafid97vxj20m80m840a.jpg?tags=%5B%7B%22x%22%3A%220%22%2C%22y%22%3A%220%22%2C%22str%22%3A%22%5Cuffe544.90%22%7D%5D";
+
+                int endIndex = pic_url.lastIndexOf("?");
+
                 //保存图片
                 String pic_filename = pic_url.substring (pic_url.lastIndexOf ("/") + 1);
+
+                if (endIndex != -1) {
+                    pic_filename = pic_url.substring (pic_url.lastIndexOf ("/") + 1, endIndex);
+                }
+
+                System.out.println(pic_filename);
+
                 String pic_path = TEMP_PATH + "pic\\" + pic_filename;
                 String pic_tmp_path = TEMP_PATH + "pic_tmp\\" + pic_filename;
 

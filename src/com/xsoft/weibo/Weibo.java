@@ -47,10 +47,12 @@ public class Weibo {
         while (true) {
             for (String uid : weiboUidList) {
                 String jsonStr = getWeiboMsgByUID(uid);
-                String data = getWeiboData(jsonStr);
-                boolean isOK = writeData(data, uid);
+                String[] data = getWeiboData(jsonStr);
+                boolean isOK = savePicData(data[0], uid);
+                isOK &= writeData(data[1], uid);
                 //System.out.println("jsonStr = " + jsonStr);
-                System.out.println("data = " + data);
+                System.out.println("data = " + data[0]);
+                System.out.println("data = " + data[1]);
                 System.out.println("isOK = " + isOK);
                 try {
                     Thread.sleep(WaitTime);
@@ -77,6 +79,31 @@ public class Weibo {
     private boolean writeData(String str, String uid) {
         if (isDebug) return false;
         String fileName = TEMP_PATH + uid + ".txt";
+        File file = new File(fileName);
+        boolean isOK = false;
+
+        try {
+            if (file.exists()) {
+                file.delete();
+            }
+
+            file.createNewFile();
+
+            OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), "GBK");
+            out.write(str);
+            out.flush();
+            out.close();
+            isOK = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return isOK;
+    }
+
+    private boolean savePicData(String str, String uid) {
+        if (isDebug) return false;
+        String fileName = TEMP_PATH + uid + "_pic.txt";
         File file = new File(fileName);
         boolean isOK = false;
 
@@ -128,11 +155,12 @@ public class Weibo {
         return 0;
     }
 
-    private String getWeiboData(String json) {
+    private String[] getWeiboData(String json) {
         JSONObject jsonObject = JSON.parseObject(json);
         String text = "";
         long id = 0;
         String textAndOrgURL = "";
+        String picPath="";
         try {
             JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("list");
             int newPublishIndex = getNewPublicTimeIndex (jsonArray);
@@ -185,16 +213,20 @@ public class Weibo {
 
                 String md5 = getMD5Checksum(pic_url);
 
-                textAndOrgURL = textAndOrgURL + "[pic,hash=" + md5 + ",url=" + pic_url
-                        + ",wide=" + width + ",high=" + height + ",cartoon=false" + "]\n";
+//                textAndOrgURL = textAndOrgURL + "[pic,hash=" + md5 + ",url=" + pic_url
+//                        + ",wide=" + width + ",high=" + height + ",cartoon=false" + "]\n";
+
+                picPath = picPath + pic_filename + "\n";
             }
 
-            textAndOrgURL = textAndOrgURL + text + "\n 【微博地址】" + ORG_Weibo_URL + id;
+            textAndOrgURL = text + "\n 【微博地址】" + ORG_Weibo_URL + id;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return textAndOrgURL;
+        String[] strings = new String[]{picPath, textAndOrgURL};
+
+        return strings;
     }
 
     private String getWeiboMsgByUID(String uid) {
